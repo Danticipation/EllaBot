@@ -1,0 +1,30 @@
+version: "3.4"
+
+services:
+  weaviate:
+    image: semitechnologies/weaviate:1.27.6
+    ports:
+      - "8080:8080"
+      - "50051:50051"  # <- Required for gRPC (finally added, you're welcome)
+    environment:
+      - QUERY_DEFAULTS_LIMIT=25
+      - AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED=true
+      - PERSISTENCE_DATA_PATH=/var/lib/weaviate
+      - DEFAULT_VECTORIZER_MODULE=text2vec-transformers
+      - ENABLE_MODULES=text2vec-transformers
+      - ENABLE_GRPC=true  # <- The gRPC summoning charm
+      - TRANSFORMERS_INFERENCE_API=http://transformers:8080
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+    depends_on:
+      - transformers
+
+  transformers:
+    image: semitechnologies/transformers-inference:sentence-transformers-paraphrase-multilingual-MiniLM-L12-v2
+    environment:
+      - ENABLE_CUDA=false
+    ports:
+      - "8081:8080"
+
+volumes:
+  weaviate_data:
